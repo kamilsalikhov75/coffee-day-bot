@@ -1,0 +1,23 @@
+{
+  "name": "coffee-day",
+  "version": "1.0.0",
+  "description": "Coffee Day Telegram bot",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "nodemon": "^3.1.0",
+    "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "date-fns": "^3.3.1",
+    "dotenv": "^16.4.5",
+    "grammy": "^1.21.1",
+    "mongoose": "^8.2.1"
+  }
+}
