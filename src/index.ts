@@ -19,12 +19,15 @@ import { Order } from "./entitities/order/types";
 import { getEmployeesTelegramIDS } from "./entitities/user/getEmployees";
 import { getOrdersKeyboard } from "./keyboards/ordersKeyboard";
 
+// Подключение к базе данных
 mongoose
   .connect(process.env.MONGO_DB || "")
   .then(() => console.log("DB Connected!"));
 
+// Создание экземляра бота
 const bot = new Bot(process.env.BOT_TOKEN || "");
 
+// Добавление доступных команд бота
 bot.api.setMyCommands([
   {
     command: "start",
@@ -32,6 +35,7 @@ bot.api.setMyCommands([
   },
 ]);
 
+// Срабатывает после /start
 bot.command("start", async (ctx) => {
   const userData = {
     telegramId: ctx.from?.id,
@@ -61,6 +65,7 @@ bot.command("start", async (ctx) => {
   });
 });
 
+//  Показывает меню кофейни
 bot.callbackQuery(ACTIONS.MENU, async (ctx) => {
   const products = await ProductModel.find();
   const keyboard = getProductsKeyboard(products as unknown as Product[]);
@@ -69,6 +74,7 @@ bot.callbackQuery(ACTIONS.MENU, async (ctx) => {
   });
 });
 
+// Показывает конкретный товар
 bot.callbackQuery(/product-[\s\S]*/, async (ctx) => {
   const productId = ctx.callbackQuery.data.replace(`${ACTIONS.PRODUCT}-`, "");
   const product = await ProductModel.findById(productId);
@@ -91,6 +97,7 @@ bot.callbackQuery(/product-[\s\S]*/, async (ctx) => {
   );
 });
 
+// Добавляет товар в корзину
 bot.callbackQuery(/add-to-cart-[\s\S]*/, async (ctx) => {
   const productId = ctx.callbackQuery.data.replace(
     `${ACTIONS.ADD_TO_CART}-`,
@@ -132,6 +139,7 @@ bot.callbackQuery(/add-to-cart-[\s\S]*/, async (ctx) => {
   await ctx.reply("Товар добавлен в корзину");
 });
 
+// Показывет главное меню
 bot.callbackQuery(ACTIONS.MAIN_MENU, async (ctx) => {
   const userData = {
     telegramId: ctx.from?.id,
@@ -153,6 +161,7 @@ bot.callbackQuery(ACTIONS.MAIN_MENU, async (ctx) => {
   });
 });
 
+// Показывает корзину
 bot.callbackQuery(ACTIONS.CART, async (ctx) => {
   const userData = {
     telegramId: ctx.from?.id,
@@ -176,6 +185,7 @@ bot.callbackQuery(ACTIONS.CART, async (ctx) => {
   });
 });
 
+// Создает заказ
 bot.callbackQuery(ACTIONS.CREATE_ORDER, async (ctx) => {
   const userData = {
     telegramId: ctx.from?.id,
@@ -221,6 +231,7 @@ bot.callbackQuery(ACTIONS.CREATE_ORDER, async (ctx) => {
   });
 });
 
+// Показывет заказы клиенту
 bot.callbackQuery(ACTIONS.MY_ORDERS, async (ctx) => {
   const userData = {
     telegramId: ctx.from?.id,
@@ -243,6 +254,7 @@ bot.callbackQuery(ACTIONS.MY_ORDERS, async (ctx) => {
   });
 });
 
+// Показывает все заказы для сотрудника
 bot.callbackQuery(ACTIONS.ORDERS, async (ctx) => {
   const orders = await OrderModel.find().sort({
     createdAt: -1,
@@ -256,6 +268,7 @@ bot.callbackQuery(ACTIONS.ORDERS, async (ctx) => {
   });
 });
 
+// Показывет конкретный заказ клиенту
 bot.callbackQuery(/my-order-[\s\S]*/, async (ctx) => {
   const orderId = ctx.callbackQuery.data.replace(`${ACTIONS.MY_ORDER}-`, "");
   const order = (await OrderModel.findById(orderId).populate({
@@ -279,6 +292,7 @@ bot.callbackQuery(/my-order-[\s\S]*/, async (ctx) => {
   );
 });
 
+// Показывает конкретный заказ сотруднику
 bot.callbackQuery(/order-[\s\S]*/, async (ctx) => {
   const orderId = ctx.callbackQuery.data.replace(`${ACTIONS.ORDER}-`, "");
   const order = (await OrderModel.findById(orderId)
@@ -310,6 +324,7 @@ bot.callbackQuery(/order-[\s\S]*/, async (ctx) => {
   );
 });
 
+// Очищает корзину
 bot.callbackQuery(ACTIONS.CLEAR_CART, async (ctx) => {
   const userData = {
     telegramId: ctx.from?.id,
@@ -333,6 +348,7 @@ bot.callbackQuery(ACTIONS.CLEAR_CART, async (ctx) => {
   });
 });
 
+// Обработка ошибок. Благодаря этому коду, если возникнет какая-то ошибка, бот просто напишет об ошибке, но не сломается, его не придется перезапускать
 bot.catch(async (err) => {
   const ctx = err.ctx;
   console.error(`Error while handling update ${ctx.update.update_id}:`);
@@ -348,6 +364,7 @@ bot.catch(async (err) => {
   await err.ctx.reply("Возникла ошибка :( Попробуйте еще раз");
 });
 
+// Запускает бота на сервере
 bot.start({
   onStart: () => {
     console.log("Bot started!");
