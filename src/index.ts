@@ -18,6 +18,7 @@ import { getMyOrdersKeyboard } from "./keyboards/myOrdersKeyboard";
 import { Order } from "./entitities/order/types";
 import { getEmployeesTelegramIDS } from "./entitities/user/getEmployees";
 import { getOrdersKeyboard } from "./keyboards/ordersKeyboard";
+import { PAYMENT_PHONE } from "./const/payment";
 
 // Подключение к базе данных
 mongoose
@@ -84,10 +85,16 @@ bot.callbackQuery(/product-[\s\S]*/, async (ctx) => {
 
   const keyboard = getProductKeyboard(product?.id);
 
+  const warning = product?.longTime
+    ? `\n${bold(
+        "Внимание:"
+      )} Товар готовится индивидуально, нужно будет подождать :)`
+    : "";
+
   await ctx.reply(
     `${bold("Товар:")} ${product?.title}\n${bold("Описание:")} ${
       product?.description
-    }\n${bold("Цена:")} ${product?.price} руб \n\n ${bold(
+    }\n${bold("Цена:")} ${product?.price} руб.${warning} \n\n ${bold(
       "Состав:"
     )} ${composition}`,
     {
@@ -206,26 +213,32 @@ bot.callbackQuery(ACTIONS.CREATE_ORDER, async (ctx) => {
     product: cartItem.product?.id,
     count: cartItem.count,
   }));
+  const orders = await OrderModel.find();
+  const orderId = orders.length + 1;
 
   const order = await new OrderModel({
     customer: user?.id,
     sum,
     cart,
+    numberId: orderId,
   }).save();
   await clearCart(user?.id);
   const keyboard = getMainKeyboard(user?.role as Role);
 
-  await ctx.reply(`Заказ оформлен.\nСумма к оплате: ${sum} руб.\n Ждем вас!`, {
-    reply_markup: keyboard,
-    parse_mode: "HTML",
-  });
+  await ctx.reply(
+    `Заказ оформлен.\nСумма к оплате: ${sum} руб.\nДля оплаты переведите ${sum} руб. На карту Тинькоф по номеру телефона ${PAYMENT_PHONE} и в комментарии к платежу укажите номер заказа: ${orderId}.\nПосле оплаты ваш заказа начнут готовить.\nКак заказ будет готов, с вами свяжется нас сотрудник.\nЖдем вас!`,
+    {
+      reply_markup: keyboard,
+      parse_mode: "HTML",
+    }
+  );
   const employees = await getEmployeesTelegramIDS();
   const orderKeyboard = new InlineKeyboard().text(
     `${order.sum} руб.`,
     `${ACTIONS.ORDER}-${order.id}`
   );
   employees.forEach((employee) => {
-    bot.api.sendMessage(employee as number, "Новый заказ!", {
+    bot.api.sendMessage(employee as number, `Новый заказ! №${orderId}`, {
       reply_markup: orderKeyboard,
     });
   });
@@ -315,9 +328,11 @@ bot.callbackQuery(/order-[\s\S]*/, async (ctx) => {
     : "";
 
   await ctx.reply(
-    `${bold("Имя Клиента:")} ${order.customer.firstName}\n${bold("Сумма:")} ${
-      order.sum
-    } руб. \n${bold("Товары:")}${products}\n\n${contactClient}`,
+    `Заказ №${order.numberId}\n${bold("Имя Клиента:")} ${
+      order.customer.firstName
+    }\n${bold("Сумма:")} ${order.sum} руб. \n${bold(
+      "Товары:"
+    )}${products}\n\n${contactClient}`,
     {
       parse_mode: "HTML",
     }

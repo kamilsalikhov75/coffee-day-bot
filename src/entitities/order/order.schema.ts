@@ -9,6 +9,10 @@ const orderSchema = new mongoose.Schema(
     },
     cart: [cartSchema],
     sum: Number,
+    numberId: {
+      type: Number,
+      unique: true,
+    },
   },
   { timestamps: true }
 );

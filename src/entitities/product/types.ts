@@ -4,4 +4,5 @@ export interface Product {
   description: string;
   price: number;
   composition: string[];
+  longTime?: boolean;
 }

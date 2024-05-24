@@ -6,4 +6,5 @@ export interface Order {
   cart: CartItem[];
   sum: number;
   createdAt: string;
+  numberId: number;
 }

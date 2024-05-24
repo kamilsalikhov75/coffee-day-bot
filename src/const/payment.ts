@@ -1,0 +1,1 @@
+export const PAYMENT_PHONE = '+7 (987) 614-69-23';

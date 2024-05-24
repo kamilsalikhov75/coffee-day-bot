@@ -12,6 +12,7 @@ const productSchema = new mongoose.Schema({
   },
 
   composition: [String],
+  longTime: Boolean,
 });
 
 export const ProductModel = mongoose.model("Product", productSchema);

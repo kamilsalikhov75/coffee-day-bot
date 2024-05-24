@@ -10,7 +10,7 @@ export const getOrdersKeyboard = (orders: Order[]) => {
 
     return [
       InlineKeyboard.text(
-        `${date} | ${order.sum} руб.`,
+        `№${order.numberId} ${date} | ${order.sum} руб.`,
         `${ACTIONS.ORDER}-${order._id}`
       ),
     ];
